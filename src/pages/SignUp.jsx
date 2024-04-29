@@ -2,10 +2,16 @@ import React from 'react'
 import { FaUserAlt, FaSignInAlt, FaAddressCard } from "react-icons/fa";
 import { FaKey } from "react-icons/fa";
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
+import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
+import { db } from "../firebase.config"
 
 
 function SignUp() {
+  const navigate = useNavigate()
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -21,10 +27,34 @@ function SignUp() {
     }))
   }
 
+  const onSubmit = async (e) => {
+    e.preventDefault()
+
+    const auth = getAuth()
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      updateProfile(auth.currentUser, {
+        displayName: name
+      })
+
+      const formDataCopy = {...formData}
+      delete formDataCopy.password
+      formDataCopy.timestamp = serverTimestamp()
+
+      await setDoc(doc(db, "users", user.uid), formDataCopy)
+
+      navigate("/")
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className='container mx-auto py-10'>
       <h1 className='my-5 text-3xl font-bold'>You can sign up here!</h1>
-      <form>
+      <form onSubmit={onSubmit}>
         <div className='flex justify-around bg-white p-3 rounded-full mb-7'>
           <FaAddressCard className='text-2xl'/>
           <input className='w-11/12 outline-none' id='name' type="text" placeholder='Name' value={name} onChange={onChange}/>

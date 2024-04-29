@@ -2,10 +2,13 @@ import React from 'react'
 import { FaUserAlt, FaSignInAlt } from "react-icons/fa";
 import { FaKey } from "react-icons/fa";
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Link } from 'react-router-dom';
-
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 
 function SignIn() {
+  const navigate = useNavigate()
+
   const [formData, setFormData] = useState({
     email: "",
     password: ""
@@ -20,10 +23,29 @@ function SignIn() {
     }))
   }
 
+  const onSubmit = async (e) => {
+    e.preventDefault()
+
+    try {
+      const auth = getAuth()
+
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+
+      if(user) {
+        navigate("/profile")
+      }
+      
+    } catch (error) {
+      console.log(error);
+    }
+
+  }
+
   return (
     <div className='container mx-auto py-10'>
       <h1 className='my-5 text-3xl font-bold'>You can sign in here!</h1>
-      <form>
+      <form onSubmit={onSubmit}>
         <div className='flex justify-around bg-white p-3 rounded-full mb-7'>
           <FaUserAlt className='text-2xl'/>
           <input className='w-11/12 outline-none' id='email' type="email" placeholder='E-mail' value={email} onChange={onChange}/>
