@@ -1,12 +1,12 @@
 import React from 'react'
-import { FaUserAlt, FaSignInAlt, FaAddressCard } from "react-icons/fa";
-import { FaKey } from "react-icons/fa";
+import { FaUserAlt, FaSignInAlt, FaAddressCard, FaKey } from "react-icons/fa";
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { getAuth, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { setDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from "../firebase.config"
+import { toast } from 'react-toastify';
+import GAuth from '../components/GAuth';
 
 
 function SignUp() {
@@ -47,7 +47,7 @@ function SignUp() {
 
       navigate("/")
     } catch (error) {
-      console.log(error);
+      toast.error("Something went wrong with registration")
     }
   }
 
@@ -70,7 +70,7 @@ function SignUp() {
         <div className='text-right'>
           <Link to="/forgot-password" className='font-semibold text-lg text-indigo-500 hover:text-indigo-800'>Forgot Password</Link>
         </div>
-        <div className='flex mt-10 gap-12 lg:justify-start md:justify-center'>
+        <div className='flex md:mt-10 mt-5 gap-12 justify-center lg:justify-start'>
           <p className='text-2xl font-semibold cursor-pointer'>Sign Up</p>
           <button className='bg-indigo-500 rounded-full p-2 hover:bg-indigo-700'>
             <FaSignInAlt fill='white' className='text-3xl'/>
@@ -78,9 +78,9 @@ function SignUp() {
         </div>
       </form>
 
-      {/* Google Auth */}
+      <GAuth />
 
-      <div className='text-center mt-16'>
+      <div className='text-center md:mt-8 mt-3'>
           <Link to="/sign-in" className='font-semibold text-lg text-indigo-500 hover:text-indigo-800'>Sign In Instead</Link>
       </div>
 

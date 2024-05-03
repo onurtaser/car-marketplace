@@ -1,19 +1,88 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
-import { getAuth } from 'firebase/auth'
+import { useNavigate, Link } from 'react-router-dom'
+import { getAuth, updateProfile, verifyBeforeUpdateEmail } from 'firebase/auth'
+import { updateDoc, doc } from 'firebase/firestore'
+import { db } from "../firebase.config"
+import { toast } from 'react-toastify'
 
 function Profile() {
-  const [user, setUser] = useState(null)
-
   const auth = getAuth()
+  const navigate = useNavigate()
 
-  useEffect(() => {
-    setUser(auth.currentUser);
-  }, [])
+  const [formData, setFormData] = useState({
+    name: auth.currentUser.displayName,
+    email: auth.currentUser.email,
+    timestamp: new Date(auth.currentUser.metadata.creationTime)
+  })
+
+  const { name, email, timestamp } = formData
+
+  const [changeDetails, setChangeDetails] = useState(false)
+
+  const onLogout = () => {
+    auth.signOut()
+
+    navigate("/")
+  }
+
+  const onSubmit = async () => {
+    try {
+      auth.currentUser.displayName !== name &&
+        (await updateProfile(auth.currentUser, {
+          displayName: name
+        }));
+ 
+      auth.currentUser.email !== email &&
+        (await verifyBeforeUpdateEmail(auth.currentUser, email));
+ 
+      const useRef = doc(db, 'users', auth.currentUser.uid);
+      await updateDoc(useRef, {
+        name,
+        email
+      });
+      
+    } catch (error) {
+      toast.error("Could not update profile details")
+      console.log(error);
+    }
+  }
+
+  const onChange = (e) => {
+    setFormData((prevState) => ({
+      ...prevState,
+      [e.target.id]: e.target.value,
+    }))
+  }
 
   return (
-    <div className='container mx-auto py-10 text-3xl font-bold'>
-      {user ? <h1>{user.displayName}</h1> : <h1>Logged out</h1> }
+    <div className='max-w-xl mx-auto mt-10 p-10 bg-white rounded-xl'>
+      <div className='flex justify-between mb-10'>
+        <p className='text-3xl font-bold'>My Profile</p>
+        <button onClick={onLogout} className='bg-indigo-500 text-white p-3 rounded-full'>Logout</button>
+      </div>
+
+      <div className='flex justify-between'>
+        <h3 className='font-semibold'>Personal Details</h3>
+        <p onClick={() => {
+          changeDetails && onSubmit()
+          setChangeDetails((prevState) => !prevState)
+        }} 
+        className='text-indigo-500 hover:text-indigo-800 cursor-pointer'>
+          {!changeDetails ? "Edit" : "Done"}
+        </p>
+      </div>
+
+      <div className='mt-10'>
+        <form>
+          <input className='outline-indigo-500 p-2 pl-5 w-full' type="text" id="name" value={name} disabled={!changeDetails} onChange={onChange}/>
+          <input className='outline-indigo-500 p-2 pl-5 w-full' type="text" id="email" value={email} disabled={!changeDetails} onChange={onChange}/>
+          <div>
+            <h3 className='font-semibold my-3'>Creation Time:</h3>
+            <input className='outline-indigo-500 w-full bg-white' type="text" value={timestamp} disabled/>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
