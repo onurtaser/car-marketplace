@@ -14,7 +14,7 @@ function Navbar() {
   }
 
   return (
-    <div className='fixed bottom-0 left-0 right-0 p-5 bg-white'>
+    <div className='fixed bottom-0 left-0 right-0 p-5 bg-white z-50'>
       <div className='container mx-auto'>
         <div className='flex justify-around'>
           <div className='flex flex-col items-center cursor-pointer' onClick={() => navigate("/")}>

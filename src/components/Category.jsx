@@ -2,12 +2,12 @@ import React from 'react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import Spinner from '../components/Spinner'
-import ListingItem from '../components/ListingItem'
+import Spinner from './Spinner'
+import ListingItem from './ListingItem'
 import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
 import { db } from '../firebase.config'
 
-function Offers() {
+function Category() {
     const [listings, setListings] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -19,7 +19,7 @@ function Offers() {
                 const listingRef = collection(db, "listings")
 
                 const q = query(listingRef,
-                    where("offer", "==", true),
+                    where("type", "==", params.categoryName),
                     orderBy("timestamp", "desc"),
                     limit(10))
 
@@ -41,7 +41,7 @@ function Offers() {
         }
 
         fetchData()
-    }, [])
+    }, [params.categoryName])
 
     const onDelete = () => {
         
@@ -50,7 +50,7 @@ function Offers() {
   return (
     <div className='my-10'>
         <header>
-            <h1 className='text-center mb-10 text-3xl font-bold'>Offers</h1>
+            <h1 className="text-center mb-10 text-3xl font-extrabold text-gray-900"><span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">Cars for</span> {params.categoryName}</h1>
         </header>
 
         {loading ? <Spinner /> : listings && listings.length > 0 ?
@@ -63,11 +63,10 @@ function Offers() {
                 </div>
             </main>
         </>
-        : 
-        <div className='container mx-auto'><p>There are no current offers</p></div>}
+        : <div className='container mx-auto'><p>No listings for {params.categoryName}</p></div>}
         
     </div>
   )
 }
 
-export default Offers
+export default Category
