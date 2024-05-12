@@ -2,7 +2,12 @@ import React from 'react'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
+import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
+import { db } from "../firebase.config"
 import Spinner from '../components/Spinner'
+import { toast } from 'react-toastify'
+import { v4 as uuidv4 } from 'uuid'
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 function CreateListing() {
   const [loading, setLoading] = useState(false)
@@ -13,7 +18,7 @@ function CreateListing() {
     kilometer: "",
     year: "",
     address: "",
-    offer: true,
+    offer: false,
     regularPrice: 0,
     discountedPrice: 0,
     images: {},
@@ -33,12 +38,91 @@ function CreateListing() {
       }
     })
   }, [])
-  
 
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault()
 
-    console.log(formData);
+    setLoading(true)
+
+    if(images.length > 6){
+      setLoading(false)
+      toast.error("Max 6 images")
+      return
+    }
+
+    if(discountedPrice >= regularPrice){
+      setLoading(false)
+      toast.error("Discounted price needs to be less than regular price")
+      return
+    }
+
+    let geolocation = {}
+    let location
+
+    const response = await fetch(`http://api.positionstack.com/v1/forward?access_key=${process.env.REACT_APP_API_KEY}&query=${address}`)
+
+    const data = await response.json()
+
+    geolocation.lat = data.data[0]?.latitude
+    geolocation.lng = data.data[0]?.longitude
+    
+    if(data.data.length === 0){
+      setLoading(false)
+      toast.error("Please enter correct address")
+      return
+    } else {
+      location = data.data[0].label
+    }
+
+    const storeImage = async (image) => {
+      return new Promise((resolve, reject) => {
+        const storage = getStorage()
+        const fileName = `${auth.currentUser.uid}-${image.name}-${uuidv4()}`
+        
+        const storageRef = ref(storage, "images/" + fileName)
+
+        const uploadTask = uploadBytesResumable(storageRef, image)
+
+        uploadTask.on('state_changed', 
+          (snapshot) => {
+            const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          }, 
+          (error) => {
+            reject(error)
+          }, 
+          () => {
+            getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) => {
+              resolve(downloadURL);
+            });
+          }
+        )
+      })
+    }
+
+    const imgUrls = await Promise.all(
+      [...images].map((image) => storeImage(image))
+    ).catch(() => {
+      setLoading(false)
+      toast.error("Images not uploaded. Try to upload images less than 2MB!")
+      return
+    })
+
+    const formDataCopy = {
+      ...formData,
+      imgUrls,
+      geolocation,
+      timestamp: serverTimestamp()
+    }
+
+    formDataCopy.location = address
+    delete formDataCopy.images
+    delete formDataCopy.address
+    !formDataCopy.offer && delete formDataCopy.discountedPrice
+    
+    const docRef = await addDoc(collection(db, "listings"), formDataCopy)
+    setLoading(false)
+    toast.success("Listing saved")
+    navigate(`/category/${formDataCopy.type}/${docRef.id}`)
   }
 
   const onMutate = (e) => {
@@ -84,12 +168,12 @@ function CreateListing() {
           </div>
 
           <label className='block font-semibold text-lg mt-3'>Name</label>
-          <input className='w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="name" maxLength="32" minLength="10" value={name} onChange={onMutate} required/>
+          <input className='w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="name" maxLength="32" minLength="3" value={name} onChange={onMutate} required/>
           
           <div className='flex space-x-20'>
             <div>
               <label className='block font-semibold text-lg mt-3'>Kilometer</label>
-              <input className='w-24 py-2 rounded-xl mt-3 text-center' type="number" id="kilometer" value={kilometer} max="999" min="0" onChange={onMutate} required />
+              <input className='w-24 py-2 rounded-xl mt-3 text-center' type="number" id="kilometer" value={kilometer} max="999999" min="0" onChange={onMutate} required />
             </div>
             <div>
               <label className='block font-semibold text-lg mt-3'>Year</label>
@@ -111,7 +195,7 @@ function CreateListing() {
 
           <label className='block font-semibold text-lg mt-3'>Regular Price</label>
           <div className='flex space-x-5'>
-            <input className='w-36 py-2 rounded-xl mt-3 text-center' type="number" id="regularPrice" value={regularPrice} max="50000" min="100" onChange={onMutate} required />
+            <input className='w-36 py-2 rounded-xl mt-3 text-center' type="number" id="regularPrice" value={regularPrice} max="999999999" min="100" onChange={onMutate} required />
             {type === "rent" && <p className='font-semibold text-lg pt-5'>$ / Day</p>}
           </div>
 
