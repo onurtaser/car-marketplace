@@ -62,7 +62,7 @@ function Profile() {
       <div className='max-w-xl mx-auto mt-10 p-10 bg-white rounded-xl'>
         <div className='flex justify-between mb-10'>
           <p className='text-3xl font-bold'>My Profile</p>
-          <button onClick={onLogout} className='bg-indigo-500 hover:bg-indigo-700 text-white p-3 rounded-full'>Logout</button>
+          <button onClick={onLogout} className='font-semibold bg-indigo-500 hover:bg-indigo-700 text-white p-3 rounded-full'>Logout</button>
         </div>
 
         <div className='flex justify-between'>
