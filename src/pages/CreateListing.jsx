@@ -57,24 +57,24 @@ function CreateListing() {
       return
     }
 
-    let geolocation = {}
-    let location
+    // let geolocation = {}
+    // let location
 
-    const response = await fetch(`https://api.positionstack.com/v1/forward?access_key=${process.env.REACT_APP_API_KEY}&query=${address}`)
+    // const response = await fetch(`https://api.positionstack.com/v1/forward?access_key=${process.env.REACT_APP_API_KEY}&query=${address}`)
 
-    const data = await response.json()
+    // const data = await response.json()
 
-    geolocation.lat = data.data[0]?.latitude
-    geolocation.lng = data.data[0]?.longitude
+    // geolocation.lat = data.data[0]?.latitude
+    // geolocation.lng = data.data[0]?.longitude
     
-    if(data.data.length === 0){
-      setLoading(false)
-      toast.error("Please enter correct address")
-      return
-    } else {
-      // eslint-disable-next-line
-      location = data.data[0].label
-    }
+    // if(data.data.length === 0){
+    //   setLoading(false)
+    //   toast.error("Please enter correct address")
+    //   return
+    // } else {
+    //   // eslint-disable-next-line
+    //   location = data.data[0]?.label
+    // }
 
     const storeImage = async (image) => {
       return new Promise((resolve, reject) => {
@@ -113,7 +113,6 @@ function CreateListing() {
     const formDataCopy = {
       ...formData,
       imgUrls,
-      geolocation,
       timestamp: serverTimestamp()
     }
 

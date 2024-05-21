@@ -97,7 +97,7 @@ function Listing() {
           </ul>
         </div>
 
-        <div className='mt-10 h-96 w-full z-10'>
+        {/* <div className='mt-10 h-96 w-full z-10'>
           <MapContainer className='h-full w-full rounded-3xl' center={[listing.geolocation.lat, listing.geolocation.lng]} zoom={13} scrollWheelZoom={false}>
             <TileLayer
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
@@ -107,9 +107,9 @@ function Listing() {
               <Popup>{listing.location}</Popup>
             </Marker>
           </MapContainer>
-        </div>
+        </div> */}
 
-        {auth.currentUser.uid !== listing.userRef && (
+        {auth.currentUser?.uid !== listing.userRef && (
           <Link to={`/contact/${listing.userRef}?listingName=${listing.name}`} className='flex justify-center font-semibold text-xl bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl py-2 mt-8'>Contact Owner</Link>
         )}
         
