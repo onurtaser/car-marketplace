@@ -60,7 +60,7 @@ function CreateListing() {
     let geolocation = {}
     let location
 
-    const response = await fetch(`http://api.positionstack.com/v1/forward?access_key=${process.env.REACT_APP_API_KEY}&query=${address}`)
+    const response = await fetch(`https://api.positionstack.com/v1/forward?access_key=${process.env.REACT_APP_API_KEY}&query=${address}`)
 
     const data = await response.json()
 
@@ -160,7 +160,7 @@ function CreateListing() {
 
   return (
     <>
-      <div className='container mx-auto mt-10'>
+      <div className='w-11/12 md:w-4/5 lg:w-3/5 xl:w-2/5 mx-auto mt-10'>
         <h1 className='text-3xl font-bold mb-10'>Create a Listing</h1>
 
         <form onSubmit={onSubmit}>
@@ -171,7 +171,7 @@ function CreateListing() {
           </div>
 
           <label className='block font-semibold text-lg mt-3'>Name</label>
-          <input className='w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="name" maxLength="32" minLength="3" value={name} onChange={onMutate} required/>
+          <input className='w-80 sm:w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="name" maxLength="32" minLength="3" value={name} onChange={onMutate} required/>
           
           <div className='flex space-x-20'>
             <div>
@@ -185,10 +185,10 @@ function CreateListing() {
           </div>
 
           <label className='block font-semibold text-lg mt-3'>Model</label>
-          <input className='w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="model" maxLength="32" minLength="2" value={model} onChange={onMutate} required/>
+          <input className='w-80 sm:w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="model" maxLength="32" minLength="2" value={model} onChange={onMutate} required/>
 
           <label className='block font-semibold text-lg mt-3'>Address</label>
-          <textarea className='w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="address" value={address} onChange={onMutate} required/>
+          <textarea className='w-80 sm:w-96 py-2 pl-2 rounded-xl mt-3' type="text" id="address" value={address} onChange={onMutate} required/>
 
           <label className='block font-semibold text-lg mt-3'>Offer</label>
           <div className='flex space-x-4 mt-3'>
