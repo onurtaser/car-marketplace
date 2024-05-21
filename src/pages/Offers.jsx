@@ -1,22 +1,27 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import Spinner from '../components/Spinner'
 import ListingItem from '../components/ListingItem'
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, getDocs, startAfter, getCountFromServer } from "firebase/firestore";
 import { db } from '../firebase.config'
 
 function Offers() {
     const [listings, setListings] = useState(null)
     const [loading, setLoading] = useState(true)
-
-    const params = useParams()
+    const [lastFetchedListing, setLastFetchedListing] = useState(null)
+    const [count, setCount] = useState(null)
 
     useEffect(() => {
         const fetchData = async () => {
             try {
                 const listingRef = collection(db, "listings")
+
+                const countQuery = query(listingRef,
+                    where("offer", "==", true)
+                )
+                const countDocs = await getCountFromServer(countQuery)
+                setCount(countDocs.data().count)
 
                 const q = query(listingRef,
                     where("offer", "==", true),
@@ -24,6 +29,9 @@ function Offers() {
                     limit(10))
 
                 const querySnapshot = await getDocs(q)
+
+                const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1]
+                setLastFetchedListing(lastVisible)
 
                 const listings = []
                 querySnapshot.forEach((doc) => {
@@ -43,8 +51,34 @@ function Offers() {
         fetchData()
     }, [])
 
-    const onDelete = () => {
-        
+    const onLoadMoreFetchData = async () => {
+        try {
+            const listingRef = collection(db, "listings")
+
+            const q = query(listingRef,
+                where("offer", "==", true),
+                orderBy("timestamp", "desc"),
+                startAfter(lastFetchedListing),
+                limit(5))
+
+            const querySnapshot = await getDocs(q)
+            
+            const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1]
+            setLastFetchedListing(lastVisible)
+
+            const listings = []
+            querySnapshot.forEach((doc) => {
+                return listings.push({
+                    id: doc.id,
+                    data: doc.data()
+                })
+            })
+
+            setListings((prevState) => [...prevState, ...listings])
+            setLoading(false)
+        } catch (error) {
+            toast.error("Could not fetch the data!")
+        }
     }
 
   return (
@@ -56,7 +90,7 @@ function Offers() {
         {loading ? <Spinner /> : listings && listings.length > 0 ?
         <>
             <main>
-                <div className='grid lg:w-4/5 mx-auto gap-8 md:grid-cols-2 sm:w-11/12 sm:grid-cols-1'>
+                <div className='grid grid-cols-1 mt-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'>
                     {listings.map((listing) => (
                         <ListingItem key={listing.id} id={listing.id} listing={listing.data} />
                     ))}
@@ -65,6 +99,12 @@ function Offers() {
         </>
         : 
         <div className='container mx-auto'><p>There are no current offers</p></div>}
+
+        <div className='flex justify-center mt-5'>
+            {lastFetchedListing && listings?.length < count && (
+                <button className='font-semibold bg-indigo-500 hover:bg-indigo-700 text-white py-1 px-4 rounded-full' onClick={onLoadMoreFetchData}>Load More</button>
+            )}
+        </div>
         
     </div>
   )

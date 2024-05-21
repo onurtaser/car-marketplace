@@ -1,16 +1,17 @@
 import React from 'react'
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from "firebase/storage"
 import { db } from "../firebase.config"
 import Spinner from '../components/Spinner'
 import { toast } from 'react-toastify'
 import { v4 as uuidv4 } from 'uuid'
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 
-function CreateListing() {
+function EditListing() {
   const [loading, setLoading] = useState(false)
+  const [listing, setListing] = useState(null)
   const [formData, setFormData] = useState({
     type: "sale",
     name: "",
@@ -27,12 +28,45 @@ function CreateListing() {
   const {type, name, model, kilometer, year, address, offer, regularPrice, discountedPrice, images} = formData
 
   const navigate = useNavigate()
+  const params = useParams()
   const auth = getAuth()
 
+  //Redirect if listing is not user's
+  useEffect(() => {
+    if(listing && listing.userRef !== auth.currentUser.uid){
+      toast.error("You can not edit that listing")
+      navigate("/")
+    }
+    // eslint-disable-next-line
+  }, [])
+
+  //Fetch listing to edit
+  useEffect(() => {
+    setLoading(true)
+
+    const fetchData = async () => {
+      const docRef = doc(db, "listings", params.listingId)
+      const docSnap = await getDoc(docRef)
+
+      if(docSnap.exists()) {
+        setListing(docSnap.data())
+        setFormData({...docSnap.data(), address: docSnap.data().location})
+        setLoading(false)
+      } else {
+        toast.error("Could not fetch the data")
+        navigate("/")
+      }
+    }
+
+    fetchData()
+    // eslint-disable-next-line
+  }, [])
+
+  //Set userRef to logged in user
   useEffect(() => {
     onAuthStateChanged(auth, (user) => {
       if(user){
-        setFormData({...formData, userRef:user.uid})
+        setFormData({...formData, userRef: user.uid})
       } else {
         navigate("/sign-in")
       }
@@ -122,9 +156,11 @@ function CreateListing() {
     delete formDataCopy.address
     !formDataCopy.offer && delete formDataCopy.discountedPrice
     
-    const docRef = await addDoc(collection(db, "listings"), formDataCopy)
+    //Update listing
+    const docRef = doc(db, "listings", params.listingId)
+    await updateDoc(docRef, formDataCopy)
     setLoading(false)
-    toast.success("Listing saved")
+    toast.success("Listing updated")
     navigate(`/category/${formDataCopy.type}/${docRef.id}`)
   }
 
@@ -161,7 +197,7 @@ function CreateListing() {
   return (
     <>
       <div className='container mx-auto mt-10'>
-        <h1 className='text-3xl font-bold mb-10'>Create a Listing</h1>
+        <h1 className='text-3xl font-bold mb-10'>Edit Listing</h1>
 
         <form onSubmit={onSubmit}>
           <label className='font-semibold text-lg'>Sell / Rent</label>
@@ -205,7 +241,7 @@ function CreateListing() {
           {offer && (
             <>
               <label className='block font-semibold text-lg mt-3'>Discounted Price</label>
-              <input className='w-36 py-2 rounded-xl mt-3 text-center' type="number" id="discountedPrice" value={discountedPrice} max="999999999" min="100" onChange={onMutate} required />
+              <input className='w-36 py-2 rounded-xl mt-3 text-center' type="number" id="discountedPrice" value={discountedPrice} max="50000" min="100" onChange={onMutate} required />
             </>
           )}
 
@@ -213,7 +249,7 @@ function CreateListing() {
           <p className='mt-3'>The first image will be the cover (max 6).</p>
           <input className='mt-3 cursor-pointer file:cursor-pointer bg-white p-3 rounded-xl w-11/12 file:bg-indigo-500 file:text-white file:p-2 file:px-8 file:rounded-xl file:border-none file:mr-5 file:font-semibold' type="file" onChange={onMutate} id="images" max="6" accept=".jpg,.png,.jpeg" multiple required  />
 
-          <button className='w-full mx-auto p-3 px-36 bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl text-lg mt-16' type='submit'>Create Listing</button>
+          <button className='w-full mx-auto p-3 px-36 bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl text-lg mt-16' type='submit'>Edit Listing</button>
 
         </form>
       </div>
@@ -221,4 +257,4 @@ function CreateListing() {
   )
 }
 
-export default CreateListing
+export default EditListing

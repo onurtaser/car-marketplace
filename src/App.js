@@ -13,6 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import CreateListing from "./pages/CreateListing";
 import Listing from "./pages/Listing";
 import ContactOwner from "./pages/ContactOwner";
+import EditListing from "./pages/EditListing";
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           </Route>
           <Route path="/sign-in" element={<SignIn />}/>
           <Route path="/sign-up" element={<SignUp />}/>
+          <Route path="/edit-listing/:listingId" element={<EditListing />}/>
         </Routes>
         <Navbar />
       </Router>

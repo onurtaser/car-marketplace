@@ -18,16 +18,16 @@ function Navbar() {
       <div className='container mx-auto'>
         <div className='flex justify-around'>
           <div className='flex flex-col items-center cursor-pointer' onClick={() => navigate("/")}>
-            <MdOutlineExplore fill={pathMatchRoute("/") ? "#2c2c2c" : "#8f8f8f"} className='text-4xl' />
-            <p className='text-xl font-semibold' style={pathMatchRoute("/") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}}>Explore</p>
+            <MdOutlineExplore fill={pathMatchRoute("/") ? "#2c2c2c" : "#8f8f8f"} className='text-3xl sm:text-4xl' />
+            <p className='text-lg sm:text-xl font-semibold' style={pathMatchRoute("/") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}}>Explore</p>
           </div>
           <div className='flex flex-col items-center cursor-pointer' onClick={() => navigate("/offers")}>
-            <MdOutlineLocalOffer fill={pathMatchRoute("/offers") ? "#2c2c2c" : "#8f8f8f"} className='text-4xl'/>
-            <p className='text-xl font-semibold' style={pathMatchRoute("/offers") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}} >Offers</p>
+            <MdOutlineLocalOffer fill={pathMatchRoute("/offers") ? "#2c2c2c" : "#8f8f8f"} className='text-3xl sm:text-4xl'/>
+            <p className='text-lg sm:text-xl font-semibold' style={pathMatchRoute("/offers") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}} >Offers</p>
           </div>
           <div className='flex flex-col items-center cursor-pointer' onClick={() => navigate("/profile")}>
-            <FaRegUser fill={pathMatchRoute("/profile") ? "#2c2c2c" : "#8f8f8f"} className='text-4xl'/>
-            <p className='text-xl font-semibold' style={pathMatchRoute("/profile") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}}>Profile</p>
+            <FaRegUser fill={pathMatchRoute("/profile") ? "#2c2c2c" : "#8f8f8f"} className='text-3xl sm:text-4xl'/>
+            <p className='text-lg sm:text-xl font-semibold' style={pathMatchRoute("/profile") ? {color: "#2c2c2c"} : {color: "#8f8f8f"}}>Profile</p>
           </div>
         </div>
       </div>

@@ -4,12 +4,14 @@ import { useParams } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import Spinner from './Spinner'
 import ListingItem from './ListingItem'
-import { collection, query, where, orderBy, limit, getDocs } from "firebase/firestore";
+import { collection, query, where, orderBy, startAfter, limit, getDocs, getCountFromServer } from "firebase/firestore";
 import { db } from '../firebase.config'
 
 function Category() {
     const [listings, setListings] = useState(null)
     const [loading, setLoading] = useState(true)
+    const [lastFetchedListing, setLastFetchedListing] = useState(null)
+    const [count, setCount] = useState(null)
 
     const params = useParams()
 
@@ -18,12 +20,21 @@ function Category() {
             try {
                 const listingRef = collection(db, "listings")
 
+                const countQuery = query(listingRef,
+                    where("type", "==", params.categoryName)
+                )
+                const countDocs = await getCountFromServer(countQuery)
+                setCount(countDocs.data().count)
+
                 const q = query(listingRef,
                     where("type", "==", params.categoryName),
                     orderBy("timestamp", "desc"),
                     limit(10))
 
                 const querySnapshot = await getDocs(q)
+                
+                const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1]
+                setLastFetchedListing(lastVisible)
 
                 const listings = []
                 querySnapshot.forEach((doc) => {
@@ -43,8 +54,34 @@ function Category() {
         fetchData()
     }, [params.categoryName])
 
-    const onDelete = () => {
-        
+    const onLoadMoreFetchData = async () => {
+        try {
+            const listingRef = collection(db, "listings")
+
+            const q = query(listingRef,
+                where("type", "==", params.categoryName),
+                orderBy("timestamp", "desc"),
+                startAfter(lastFetchedListing),
+                limit(10))
+
+            const querySnapshot = await getDocs(q)
+            
+            const lastVisible = querySnapshot.docs[querySnapshot.docs.length - 1]
+            setLastFetchedListing(lastVisible)
+
+            const listings = []
+            querySnapshot.forEach((doc) => {
+                return listings.push({
+                    id: doc.id,
+                    data: doc.data()
+                })
+            })
+
+            setListings((prevState) => [...prevState, ...listings])
+            setLoading(false)
+        } catch (error) {
+            toast.error("Could not fetch the data!")
+        }
     }
 
   return (
@@ -56,14 +93,20 @@ function Category() {
         {loading ? <Spinner /> : listings && listings.length > 0 ?
         <>
             <main>
-                <div className='grid lg:w-4/5 mx-auto gap-8 md:grid-cols-2 sm:w-11/12 sm:grid-cols-1'>
+                <div className='grid grid-cols-1 mt-10 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4'>
                     {listings.map((listing) => (
                         <ListingItem key={listing.id} id={listing.id} listing={listing.data} />
                     ))}
-                </div>
+                </div> 
             </main>
         </>
-        : <div className='container mx-auto'><p>No listings for {params.categoryName}</p></div>}
+        : <div className='w-10/12 mx-auto'><p>No listings for {params.categoryName}</p></div>}
+
+        <div className='flex justify-center mt-5'>
+            {lastFetchedListing && listings?.length < count && (
+                <button className='font-semibold bg-indigo-500 hover:bg-indigo-700 text-white py-1 px-4 rounded-full' onClick={onLoadMoreFetchData}>Load More</button>
+            )}
+        </div>
         
     </div>
   )

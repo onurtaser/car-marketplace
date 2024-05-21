@@ -1,6 +1,6 @@
 import React from 'react'
 import { useState } from 'react'
-import { FaUserAlt, FaSignInAlt } from "react-icons/fa";
+import { FaUserAlt} from "react-icons/fa";
 import { MdOutlineLockReset } from "react-icons/md";
 import { Link } from 'react-router-dom';
 import { getAuth, sendPasswordResetEmail } from 'firebase/auth';

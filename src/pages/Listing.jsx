@@ -20,6 +20,7 @@ function Listing() {
     const [shareLinkCopied, setShareLinkCopied] = useState(false)
     const [listing, setListing] = useState(null)
 
+    // eslint-disable-next-line
     const navigate = useNavigate()
     const params = useParams()
     const auth = getAuth()
@@ -32,7 +33,6 @@ function Listing() {
 
             if(docSnap.exists()) {
                 setListing(docSnap.data())
-                console.log(docSnap.data());
                 setLoading(false)
             }
 
@@ -46,23 +46,8 @@ function Listing() {
     }
 
   return (
-    <main>
-
-      <div className='fixed z-10 top-14 right-14 bg-white p-3 rounded-full cursor-pointer' onClick={() => {
-        navigator.clipboard.writeText(window.location.href)
-        setShareLinkCopied(true)
-        setTimeout(() => {
-          setShareLinkCopied(false)
-        }, 2000)
-      }}>
-        <FaShareAlt className='text-2xl'/>
-      </div>
-
-      {shareLinkCopied && <p className='font-semibold text-lg z-10 fixed right-10 top-28'>Link Copied!</p>}
-
-      <div className='container mx-auto my-10'>
-
-        <div style={{height: "600px"}} className='w-full bg-white mb-5'>
+    <div className="w-11/12 md:w-4/5 lg:w-3/5 mx-auto my-10">
+        <div style={{height: "600px"}} className='w-full bg-white mb-5 relative'>
           <Swiper
           // install Swiper modules
           modules={[Navigation, Pagination, Scrollbar, A11y]}
@@ -78,17 +63,29 @@ function Listing() {
               </SwiperSlide>
             ))}
           </Swiper>
+
+          <div className='absolute z-10 top-10 right-10 bg-white p-3 rounded-full cursor-pointer' onClick={() => {
+            navigator.clipboard.writeText(window.location.href)
+            setShareLinkCopied(true)
+            // setTimeout(() => {
+            //   setShareLinkCopied(false)
+            // }, 2000)
+          }}>
+            <FaShareAlt className='text-2xl'/>
+          </div>
+
+          {shareLinkCopied && <p className='font-semibold text-white text-lg z-10 absolute top-24 right-6'>Link Copied!</p>}
         </div>
 
         <div className='mb-3'>
-          <h1 className='text-3xl font-bold'>{listing.name} - ${listing.offer ? listing.discountedPrice : listing.regularPrice}</h1>
+          <h1 className='text-3xl font-bold'>{listing.name} - ${listing.offer ? listing.discountedPrice.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",") : listing.regularPrice.toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")}</h1>
           <p className='font-semibold mt-1'>{listing.location}</p>
         </div>
 
         <div className='flex space-x-5'>
           <p className='bg-indigo-500 text-sm text-white px-2 rounded-xl font-semibold'>For {params.categoryName}</p>
           {listing.offer && (
-            <p className='bg-black text-sm text-white px-3 rounded-xl font-semibold'>${listing.regularPrice - listing.discountedPrice} discount</p>
+            <p className='bg-black text-sm text-white px-3 rounded-xl font-semibold'>${(listing.regularPrice - listing.discountedPrice).toString().replace(/\B(?<!\.\d*)(?=(\d{3})+(?!\d))/g, ",")} discount</p>
           )}
         </div>
 
@@ -113,10 +110,10 @@ function Listing() {
         </div>
 
         {auth.currentUser.uid !== listing.userRef && (
-          <Link to={`/contact/${listing.userRef}?listingName=${listing.name}`} className='flex justify-center items-center mx-auto font-semibold text-xl bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl px-52 py-3 mt-8'>Contact Owner</Link>
+          <Link to={`/contact/${listing.userRef}?listingName=${listing.name}`} className='flex justify-center font-semibold text-xl bg-indigo-500 hover:bg-indigo-700 text-white rounded-xl py-2 mt-8'>Contact Owner</Link>
         )}
-      </div>
-    </main>
+        
+    </div>
   )
 }
 
